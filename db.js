@@ -27,27 +27,37 @@ class Database {
   async initializeTables() {
     return new Promise((resolve, reject) => {
       console.log('Initializing database tables...');
-      this.db.run(`
-        CREATE TABLE IF NOT EXISTS emails (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          sender TEXT NOT NULL,
-          receiver TEXT NOT NULL,
-          subject TEXT,
-          text TEXT,
-          date DATETIME DEFAULT CURRENT_TIMESTAMP,
-          status TEXT DEFAULT 'unread',
-          is_deleted INTEGER DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `, (err) => {
+      // Drop the existing table if it exists
+      this.db.run('DROP TABLE IF EXISTS emails', (err) => {
         if (err) {
-          console.error('Error creating tables:', err);
+          console.error('Error dropping table:', err);
           reject(err);
           return;
         }
-        console.log('Database tables initialized successfully');
-        resolve();
+        
+        // Create the table with the correct schema
+        this.db.run(`
+          CREATE TABLE IF NOT EXISTS emails (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender TEXT NOT NULL,
+            receiver TEXT NOT NULL,
+            subject TEXT,
+            text TEXT,
+            date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            status TEXT DEFAULT 'unread',
+            is_deleted INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `, (err) => {
+          if (err) {
+            console.error('Error creating tables:', err);
+            reject(err);
+            return;
+          }
+          console.log('Database tables initialized successfully');
+          resolve();
+        });
       });
     });
   }
